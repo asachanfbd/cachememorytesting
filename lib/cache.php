@@ -2,11 +2,13 @@
   class cache {
       
       public $level;
-      public $inc;
+      public $inc;          /* list of names of inclusive memories */
+      public $inclist;      /* list of names of inclusive memories */
       public $incto;
       public $incdata;
       public $excdata;
       public $exclist;
+      
       
       function __construct(){
           global $db;
@@ -20,17 +22,23 @@
                     $this->level[$ro->memname]['accesstime'] = $ro->memaccesstime;
                     if($ro->memtype == 'inc'){
                         $this->inc[] = $ro->memname;
-                        foreach($this->level[$ro->memname]['incwith'] as $v){
-                            $this->incto[] = $v;
+                        if(is_array($this->level[$ro->memname]['incwith'])){
+                            foreach($this->level[$ro->memname]['incwith'] as $v){
+                                $this->incto[] = $v;
+                            }
                         }
-                        foreach($this->level[$ro->memname]['data'] as $v){
-                            $this->incdata[] = $v;
+                        if(is_array($this->level[$ro->memname]['data'])){
+                            foreach($this->level[$ro->memname]['data'] as $v){
+                                $this->incdata[] = $v;
+                            }
                         }
                     }
                     if($ro->memtype == 'exc'){
                         $this->exclist[] = $ro->memname;
-                        foreach($this->level[$ro->memname]['data'] as $v){
-                            $this->excdata[] = $v;
+                        if(is_array($this->level[$ro->memname]['data'])){
+                            foreach($this->level[$ro->memname]['data'] as $v){
+                                $this->excdata[] = $v;
+                            }
                         }
                     }
                 }
@@ -53,17 +61,18 @@
           */
       }
       
-      function configcache($level, $type, $length, $inc_with){
+      function configcache($level, $type, $length, $inc_with, $accesstime){
           global $db;
           $values = array(
                 'memname' => $level,
                 'memtype' => $type,
                 'memlength'=>$length,
-                'memincwith'=>json_encode($inc_with)
+                'memincwith'=>json_encode($inc_with),
+                'memaccesstime'=>$accesstime
           );
           
-          if($db->insert('memconfig', $values)){
-              return true;
+          if($db->replace('memconfig', $values)){
+              return $level;
           }
           return false;
       }
@@ -110,18 +119,208 @@
       
       function get($block){
           $d = '<br>Test Case debug data:'.$block;
-          $this->accesstime($this->level['l1']['accesstime']);
-          if(in_array($block, $this->excdata)){
-              $this->hit(true);
-              $d .= '<br>Hit counted';
-          }else{
-              $this->miss(true);
-              $d .= '<br>Miss counted';
-              $this->getfrommainmem($block);
-          }
+          return $this->levelone($block);
           //echo $d;
       }
       
+      function levelone($blockname = ''){
+          $ltype = 'l1';
+          static $access = 0;
+          static $hits = 0;
+          static $miss = 0;
+          if($blockname != 'status'){
+              $access++;
+              if(is_array($this->level[$ltype]['data']) && in_array($blockname, $this->level[$ltype]['data'])){
+                  $hits++;
+                  $this->moveup($blockname);
+                  return true;
+              }else{
+                  $miss++;
+                  return $this->leveltwo($blockname);
+              }
+          }else{
+              //get the status of this cache
+              $arr = array(
+                    'access' => $access,
+                    'hits' => $hits,
+                    'miss' => $miss
+              );
+              return $arr;
+          }
+      }
+      
+      function leveltwo($blockname = ''){
+          $ltype = 'l2';
+          static $access = 0;
+          static $hits = 0;
+          static $miss = 0;
+          if($blockname != 'status'){
+              $access++;
+              if(is_array($this->level[$ltype]['data']) && in_array($blockname, $this->level[$ltype]['data'])){
+                  $hits++;
+                  $this->moveup($blockname);
+                  return true;
+              }else{
+                  $miss++;
+                  return $this->levelthree($blockname);
+              }
+          }else{
+              //get the status of this cache
+              $arr = array(
+                    'access' => $access,
+                    'hits' => $hits,
+                    'miss' => $miss
+              );
+              return $arr;
+          }
+      }
+      
+      function levelthree($blockname = ''){
+          $ltype = 'l3';
+          static $access = 0;
+          static $hits = 0;
+          static $miss = 0;
+          if($blockname != 'status'){
+              $access++;
+              if(is_array($this->level[$ltype]['data']) && in_array($blockname, $this->level[$ltype]['data'])){
+                  $hits++;
+                  $this->moveup($blockname);
+                  return true;
+              }else{
+                  $miss++;
+                  return $this->load_from_main_memory($blockname);
+              }
+          }else{
+              //get the status of this cache
+              $arr = array(
+                    'access' => $access,
+                    'hits' => $hits,
+                    'miss' => $miss
+              );
+              return $arr;
+          }
+      }
+      
+      function load_from_main_memory($blockname = ''){
+          $ltype = 'l3';
+          static $access = 0;
+          $access++;
+          $this->excdata[] = $blockname;
+          $this->incdata[] = $blockname;
+          $this->fell_levels();
+          return true;
+      }
+      
+      function fell_levels(){
+          global $db;
+          $i = 0;
+          $this->level[$this->exclist[$i]]['data'] = array();
+          
+          foreach(array_reverse($this->excdata) as $k=>$v){
+              $this->level[$this->exclist[$i]]['data'][] = $v;
+              
+              if(count($this->level[$this->exclist[$i]]['data']) >= $this->level[$this->exclist[$i]]['length']){
+                  $i++;
+                  //echo '<pre style="font-size: 10px;">'.print_r($this->level, true).'</pre>'.print_r($this->exclist, true);
+                  if(isset($this->exclist[$i])){
+                      $this->level[$this->exclist[$i]]['data'] = array();
+                  }else{
+                      break;
+                  }
+              }
+          }
+          $i = 0;
+          $this->level[$this->inc[$i]]['data'] = array();
+          foreach(array_reverse($this->incdata) as $v){
+              $this->level[$this->inc[$i]]['data'][] = $v;
+              if(count($this->level[$this->inc[$i]]['data']) >= $this->level[$this->inc[$i]]['length']){
+                  $i++;
+                  if(isset($this->level[$this->inc[$i]]['data'])){
+                      $this->level[$this->inc[$i]]['data'] = array();
+                  }else{
+                      break;
+                  }
+              }
+          }
+      }
+      
+      function moveup($blockname){
+          //move up in exclusive levels
+          $k = array_search($blockname, $this->excdata);
+          unset($this->excdata[$k]);
+          $this->excdata[] = $blockname;
+          //move up in inclusive levels
+          $k = array_search($blockname, $this->incdata);
+          unset($this->incdata[$k]);
+          $this->incdata[] = $blockname;
+      }
+      
+      function output(){
+          $output['l1'] = $this->levelone('status');
+          $output['l2'] = $this->leveltwo('status');
+          $output['l3'] = $this->levelthree('status');
+          $roundoff = 2;
+          return '
+          <table>
+                    <tr>
+                        <th></th>
+                        <th>Level 1</th>
+                        <th>Level 2</th>
+                        <th>Level 3</th>
+                        <th>Total</th>
+                    </tr>
+                    <tr>
+                        <th>Access time</th>
+                        <td>'.$output['l1']['access'].' * '.$this->level['l1']['accesstime'].' = <b>'.($output['l1']['access']*$this->level['l1']['accesstime']).'</b></td>
+                        <td>'.$output['l2']['access'].' * '.$this->level['l2']['accesstime'].' = <b>'.($output['l2']['access']*$this->level['l2']['accesstime']).'</b></td>
+                        <td>'.$output['l3']['access'].' * '.$this->level['l3']['accesstime'].' = <b>'.($output['l3']['access']*$this->level['l3']['accesstime']).'</b></td>
+                        <td><b>'.(($output['l1']['access']*$this->level['l1']['accesstime']) + ($output['l2']['access']*$this->level['l2']['accesstime']) + ($output['l3']['access']*$this->level['l3']['accesstime'])).'</b></td>
+                    </tr>
+                    <tr>
+                        <th>Hits Count</th>
+                        <td>'.$output['l1']['hits'].'</td>
+                        <td>'.$output['l2']['hits'].'</td>
+                        <td>'.$output['l3']['hits'].'</td>
+                        <td><b>'.($output['l1']['hits'] + $output['l2']['hits'] + $output['l3']['hits']).'</b></td>
+                    </tr>
+                    <tr>
+                        <th>Miss Count</th>
+                        <td>'.$output['l1']['miss'].'</td>
+                        <td>'.$output['l2']['miss'].'</td>
+                        <td>'.$output['l3']['miss'].'</td>
+                        <td><b>'.($output['l1']['miss'] + $output['l2']['miss'] + $output['l3']['miss']).'</b></td>
+                    </tr>
+                    <tr>
+                        <th>Local Miss Rate</th>
+                        <td>'.$output['l1']['miss'].' / '.$output['l1']['access'].' = '.round(($output['l1']['miss']/$output['l1']['access']), $roundoff).'</td>
+                        <td>'.$output['l2']['miss'].' / '.$output['l2']['access'].' = '.round(($output['l2']['miss']/$output['l2']['access']), $roundoff).'</td>
+                        <td>'.$output['l3']['miss'].' / '.$output['l3']['access'].' = '.round(($output['l3']['miss']/$output['l3']['access']), $roundoff).'</td>
+                        <td>'.round(round($output['l1']['miss']/$output['l1']['access'], $roundoff) + round($output['l2']['miss']/$output['l2']['access'], $roundoff) + round($output['l3']['miss']/$output['l3']['access'], $roundoff), $roundoff).'</td>
+                    </tr>
+                    <tr>
+                        <th>Global Miss Rate</th>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <th>Hit Rate</th>
+                        <td>'.$output['l1']['hits'].' / '.$output['l1']['access'].' * 100 = '.round(($output['l1']['hits']/$output['l1']['access'])*100, $roundoff).'%</td>
+                        <td>'.$output['l2']['hits'].' / '.$output['l2']['access'].' * 100 = '.round(($output['l2']['hits']/$output['l2']['access'])*100, $roundoff).'%</td>
+                        <td>'.$output['l3']['hits'].' / '.$output['l3']['access'].' * 100 = '.round(($output['l3']['hits']/$output['l3']['access'])*100, $roundoff).'%</td>
+                        <td>'.round(round((($output['l1']['hits']/$output['l1']['access'])*100 + ($output['l2']['hits']/$output['l2']['access'])*100 + ($output['l3']['hits']/$output['l3']['access'])*100), $roundoff)/3, $roundoff).'% avg.</td>
+                    </tr>
+                    <tr>
+                        <th>Miss Rate</th>
+                        <td>'.(100 - round($output['l1']['hits']/$output['l1']['access'], $roundoff)*100).'%</td>
+                        <td>'.(100 - round($output['l2']['hits']/$output['l2']['access'], $roundoff)*100).'%</td>
+                        <td>'.(100 - round($output['l3']['hits']/$output['l3']['access'], $roundoff)*100).'%</td>
+                        <td>'.(round(((100 - round($output['l1']['hits']/$output['l1']['access'], $roundoff)*100) + (100 - round($output['l2']['hits']/$output['l2']['access'], $roundoff)*100) + (100 - round($output['l3']['hits']/$output['l3']['access'], $roundoff)*100)), $roundoff)/3).'% avg.</td>
+                    </tr>
+                </table>';
+      }
+      /*
       function fillexclusive($data){
           $this->excdata[] = $data;
           $this->fillinclusive($data);
@@ -137,16 +336,20 @@
       function getfrommainmem($data){
           $this->fillexclusive($data);
       }
+      */
       
       function finalize(){
           global $db;
           $i = 0;
           $this->level[$this->exclist[$i]]['data'] = array();
-          foreach($this->excdata as $k=>$v){
+          
+          foreach(array_reverse($this->excdata) as $k=>$v){
               $this->level[$this->exclist[$i]]['data'][] = $v;
+              
               if(count($this->level[$this->exclist[$i]]['data']) >= $this->level[$this->exclist[$i]]['length']){
                   $i++;
-                  if(isset($this->level[$this->exclist[$i]]['data'])){
+                  //echo '<pre style="font-size: 10px;">'.print_r($this->level, true).'</pre>'.print_r($this->exclist, true);
+                  if(isset($this->exclist[$i])){
                       $this->level[$this->exclist[$i]]['data'] = array();
                   }else{
                       break;
@@ -155,7 +358,7 @@
           }
           $i = 0;
           $this->level[$this->inc[$i]]['data'] = array();
-          foreach($this->incdata as $v){
+          foreach(array_reverse($this->incdata) as $v){
               $this->level[$this->inc[$i]]['data'][] = $v;
               if(count($this->level[$this->inc[$i]]['data']) >= $this->level[$this->inc[$i]]['length']){
                   $i++;
@@ -182,9 +385,10 @@
           print_r($this->exclist);
           echo "</pre>";
           */
+              
           foreach($this->level as $k=>$v){
               $values = array(
-                    'memdata' => $this->level[$k]['data']
+                    'memdata' => json_encode($this->level[$k]['data'])
               );
               $db->update('memconfig', $values, 'memname = "'.$k.'"');
           }

@@ -14,7 +14,6 @@
   require_once('profiler.php');
   require_once('stats.php');
   require_once('db.php');
-  require_once('error.php');
   require_once('pages.php');
   require_once('view.php');
   require_once('commonfunctions.php');
@@ -38,10 +37,7 @@
   $db=new db($dbname, $host, $uname, $pass);/*initialization in case of server is not on localhost*/
   
   /*Object Instantiation for classes*/
-  $error=new error();
   $user=new user();
-  //$newsupdates=new newsupdates();
-  set_error_handler(array($error, 'report'));
   $contentpages=new pages();
   $stats=new stats();
   $view=new view();

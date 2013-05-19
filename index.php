@@ -38,7 +38,7 @@
     );
     
     $mainmemory = array();
-    for($i = 1; $i <= 50; $i++){
+    for($i = 1; $i <= 1000; $i++){
         $mainmemory['block'.$i] = 'data'.$i;
     }
     $re = $db->querydb("SELECT * FROM memconfig");
@@ -59,11 +59,13 @@
           $testcases[] = $ro->name;
      }
  }
- 
+ $output = '';
+    if(isset($_REQUEST['runtest'])){
         foreach($testcases as $v){
             $cache->get($v);
         }
-        $cache->finalize();
+        $output = $cache->output();
+    }
 ?>
 <!doctype html>
 <html>
@@ -81,13 +83,33 @@
 </nav>
 
 <div class="container">
+<div class="results">
+<h1>Results on running test case:</h1>
+<div>
+    <?php
+        //echo round('12'/'12', 6);
+        echo $output;
+        /*
+        echo "Total Hits: ".$cache->hit()."<br>";
+        echo "Total Miss: ".$cache->miss()."<br>";
+        echo "Total Conflict Miss: ".$cache->conflictmiss()."<br>";
+        echo "Total Access time: ".$cache->accesstime()."<br>";
+        */
+    ?>
+</div>
+</div>
     <div class="testcases memblocks">
         <h1>Test Cases</h1>
+        <form action="index.php" method="POST">
+            <input type="submit" name="runtest" value="Run Test Case" onclick="return confirm('You are about to run the test case. Continue?');">
+        </form>
         <ul>
         <?php
+        if(is_array($testcases)){
             foreach($testcases as $k=>$v){
                 echo "<li>".$v."</li>";
             }
+        }
          ?>
          </ul>
     </div>
@@ -96,29 +118,35 @@
         <h1>Cache L1</h1>
         <ul>
         <?php
-             foreach($cache->level['l1']['data'] as $k=>$v){
-                 echo "<li>".$v."</li>";
-             }
+            if(is_array($cache->level['l1']['data'])){
+                 foreach($cache->level['l1']['data'] as $k=>$v){
+                     echo "<li>".$v."</li>";
+                 }
+            }
          ?>
          </ul>
     </div>
     <div class="level2 memblocks">
-        <h1><br> L2</h1>
+        <h1><br>L2</h1>
         <ul>
         <?php
-             foreach($cache->level['l2']['data'] as $k=>$v){
-                 echo "<li>".$v."</li>";
-             }
+            if(is_array($cache->level['l2']['data'])){
+                 foreach($cache->level['l2']['data'] as $k=>$v){
+                     echo "<li>".$v."</li>";
+                 }
+            }
          ?>
          </ul>
     </div>
     <div class="level3 memblocks">
-        <h1><br> L3</h1>
+        <h1><br>L3</h1>
         <ul>
         <?php
-             foreach($cache->level['l3']['data'] as $k=>$v){
-                 echo "<li>".$v."</li>";
-             }
+            if(is_array($cache->level['l3']['data'])){
+                 foreach($cache->level['l3']['data'] as $k=>$v){
+                     echo "<li>".$v."</li>";
+                 }
+            }
          ?>
          </ul>
     </div>
@@ -134,20 +162,7 @@
          ?>
          </ul>
     </div>
-</div>
-<div class="results">
-<h1>Results on running test case:</h1>
-<div>
-    <?php
-        foreach($testcases as $v){
-            $cache->get($v);
-        }
-        echo "Total Hits: ".$cache->hit()."<br>";
-        echo "Total Miss: ".$cache->miss()."<br>";
-        echo "Total Conflict Miss: ".$cache->conflictmiss()."<br>";
-        echo "Total Access time: ".$cache->accesstime()."<br>";
-    ?>
-</div>
+
 </div>
 </body>
 </html>
