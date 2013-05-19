@@ -18,25 +18,6 @@
   }
   // code to fill blocks
   
-    $l1 = array(
-            'block1' => 'data1',
-            'block2' => 'data2',
-            'block3' => 'data3',
-            'block4' => 'data4'
-    );
-    $l2 = array(
-            'block1' => 'data1',
-            'block2' => 'data2',
-            'block3' => 'data3',
-            'block4' => 'data4'
-    );
-    $l3 = array(
-            'block1' => 'data1',
-            'block2' => 'data2',
-            'block3' => 'data3',
-            'block4' => 'data4'
-    );
-    
     $mainmemory = array();
     for($i = 1; $i <= 1000; $i++){
         $mainmemory['block'.$i] = 'data'.$i;
@@ -64,7 +45,13 @@
         foreach($testcases as $v){
             $cache->get($v);
         }
-        $output = $cache->output();
+        $output = '
+        <div class="results">
+            <h1>Results on running test cases:</h1>
+            <div>'.$cache->output().'</div>
+        </div>
+        ';
+        $cache->savetodb();
     }
 ?>
 <!doctype html>
@@ -81,23 +68,10 @@
         <li><a href="index.php">View</a></li>
     </ul>
 </nav>
-
 <div class="container">
-<div class="results">
-<h1>Results on running test case:</h1>
-<div>
     <?php
-        //echo round('12'/'12', 6);
         echo $output;
-        /*
-        echo "Total Hits: ".$cache->hit()."<br>";
-        echo "Total Miss: ".$cache->miss()."<br>";
-        echo "Total Conflict Miss: ".$cache->conflictmiss()."<br>";
-        echo "Total Access time: ".$cache->accesstime()."<br>";
-        */
     ?>
-</div>
-</div>
     <div class="testcases memblocks">
         <h1>Test Cases</h1>
         <form action="index.php" method="POST">

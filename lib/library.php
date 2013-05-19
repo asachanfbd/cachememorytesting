@@ -6,7 +6,7 @@
   * developer:      Sudhanshu Mishra
   * description:    This is php page where all the important classes of the project are included and corresponding object instantiation process takes place.
   */
-  
+  $testcases = array();
   date_default_timezone_set('Asia/Calcutta');
   
   /*PHP class inclusions*/  

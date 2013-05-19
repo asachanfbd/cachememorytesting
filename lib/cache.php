@@ -81,42 +81,6 @@
           return $this->level[$name][$property];
       }
       
-      function hit($data = false){
-          static $count = 0;
-          if($data){
-              $count++;
-          }else{
-              return $count;
-          }
-      }
-      
-      function miss($data = false){
-          static $count = 0;
-          if($data){
-              $count++;
-          }else{
-              return $count;
-          }
-      }
-      
-      function conflictmiss($data = false){
-          static $count = 0;
-          if($data){
-              $count++;
-          }else{
-              return $count;
-          }
-      }
-      
-      function accesstime($data = 0){
-          static $count = 0;
-          if($data != 0){
-              $count += $data;
-          }else{
-              return $count;
-          }
-      }
-      
       function get($block){
           $d = '<br>Test Case debug data:'.$block;
           return $this->levelone($block);
@@ -256,6 +220,8 @@
       }
       
       function output(){
+          global $testcases;
+          
           $output['l1'] = $this->levelone('status');
           $output['l2'] = $this->leveltwo('status');
           $output['l3'] = $this->levelthree('status');
@@ -299,10 +265,10 @@
                     </tr>
                     <tr>
                         <th>Global Miss Rate</th>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
+                        <td>'.$output['l1']['miss'].' / '.count($testcases).' = '.round(($output['l1']['miss']/count($testcases)), $roundoff).'</td>
+                        <td>'.$output['l2']['miss'].' / '.count($testcases).' = '.round(($output['l2']['miss']/count($testcases)), $roundoff).'</td>
+                        <td>'.$output['l3']['miss'].' / '.count($testcases).' = '.round(($output['l3']['miss']/count($testcases)), $roundoff).'</td>
+                        <td>'.round(round($output['l1']['miss']/count($testcases), $roundoff) + round($output['l2']['miss']/count($testcases), $roundoff) + round($output['l3']['miss']/count($testcases), $roundoff), $roundoff).'</td>
                     </tr>
                     <tr>
                         <th>Hit Rate</th>
@@ -320,7 +286,58 @@
                     </tr>
                 </table>';
       }
-      /*
+      
+      function savetodb(){
+          global $db;
+          foreach($this->level as $k=>$v){
+              $values = array(
+                    'memdata' => json_encode($this->level[$k]['data'])
+              );
+              $db->update('memconfig', $values, 'memname = "'.$k.'"');
+          }
+      }
+      
+      function __destruct(){
+      }
+  }
+  
+  class cache_old{
+      
+      function hit($data = false){
+          static $count = 0;
+          if($data){
+              $count++;
+          }else{
+              return $count;
+          }
+      }
+      
+      function miss($data = false){
+          static $count = 0;
+          if($data){
+              $count++;
+          }else{
+              return $count;
+          }
+      }
+      
+      function conflictmiss($data = false){
+          static $count = 0;
+          if($data){
+              $count++;
+          }else{
+              return $count;
+          }
+      }
+      
+      function accesstime($data = 0){
+          static $count = 0;
+          if($data != 0){
+              $count += $data;
+          }else{
+              return $count;
+          }
+      }
       function fillexclusive($data){
           $this->excdata[] = $data;
           $this->fillinclusive($data);
@@ -336,7 +353,6 @@
       function getfrommainmem($data){
           $this->fillexclusive($data);
       }
-      */
       
       function finalize(){
           global $db;
@@ -369,22 +385,7 @@
                   }
               }
           }
-          /*
-          echo "<pre style='font-size: 11px;'>";
-          echo "<br>level: ";
-          print_r($this->level);
-          echo "<br>inc: ";
-          print_r($this->inc);
-          echo "<br>incto: ";
-          print_r($this->incto);
-          echo "<br>incdata: ";
-          print_r($this->incdata);
-          echo "<br>excdata: ";
-          print_r($this->excdata);
-          echo "<br>exclist: ";
-          print_r($this->exclist);
-          echo "</pre>";
-          */
+          
               
           foreach($this->level as $k=>$v){
               $values = array(
@@ -394,8 +395,5 @@
           }
       }
       
-      function __destruct(){
-          //$this->finalize();
-      }
   }
 ?>
