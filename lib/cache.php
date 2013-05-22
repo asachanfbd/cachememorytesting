@@ -169,10 +169,17 @@
           $ltype = 'l3';
           static $access = 0;
           $access++;
+          
           $this->excdata[] = $blockname;
           $this->incdata[] = $blockname;
           $this->fell_levels();
           return true;
+      }
+      
+      function load_into_levels($block){
+          if(count($this->level['l1']) >= 8){
+              
+          }
       }
       
       function fell_levels(){
@@ -258,31 +265,31 @@
                     </tr>
                     <tr>
                         <th>Local Miss Rate</th>
-                        <td>'.$output['l1']['miss'].' / '.$output['l1']['access'].' = '.round(($output['l1']['miss']/$output['l1']['access']), $roundoff).'</td>
-                        <td>'.$output['l2']['miss'].' / '.$output['l2']['access'].' = '.round(($output['l2']['miss']/$output['l2']['access']), $roundoff).'</td>
-                        <td>'.$output['l3']['miss'].' / '.$output['l3']['access'].' = '.round(($output['l3']['miss']/$output['l3']['access']), $roundoff).'</td>
-                        <td>'.round(round($output['l1']['miss']/$output['l1']['access'], $roundoff) + round($output['l2']['miss']/$output['l2']['access'], $roundoff) + round($output['l3']['miss']/$output['l3']['access'], $roundoff), $roundoff).'</td>
+                        <td>'.$output['l1']['miss'].' / '.$output['l1']['access'].' = '.round($this->divide($output['l1']['miss'],$output['l1']['access']), $roundoff).'</td>
+                        <td>'.$output['l2']['miss'].' / '.$output['l2']['access'].' = '.round($this->divide($output['l2']['miss'],$output['l2']['access']), $roundoff).'</td>
+                        <td>'.$output['l3']['miss'].' / '.$output['l3']['access'].' = '.round($this->divide($output['l3']['miss'],$output['l3']['access']), $roundoff).'</td>
+                        <td>'.round(round($this->divide($output['l1']['miss'],$output['l1']['access']), $roundoff) + round($this->divide($output['l2']['miss'],$output['l2']['access']), $roundoff) + round($this->divide($output['l3']['miss'],$output['l3']['access']), $roundoff), $roundoff).'</td>
                     </tr>
                     <tr>
                         <th>Global Miss Rate</th>
-                        <td>'.$output['l1']['miss'].' / '.count($testcases).' = '.round(($output['l1']['miss']/count($testcases)), $roundoff).'</td>
-                        <td>'.$output['l2']['miss'].' / '.count($testcases).' = '.round(($output['l2']['miss']/count($testcases)), $roundoff).'</td>
-                        <td>'.$output['l3']['miss'].' / '.count($testcases).' = '.round(($output['l3']['miss']/count($testcases)), $roundoff).'</td>
+                        <td>'.$output['l1']['miss'].' / '.count($testcases).' = '.round($this->divide($output['l1']['miss'],count($testcases)), $roundoff).'</td>
+                        <td>'.$output['l2']['miss'].' / '.count($testcases).' = '.round($this->divide($output['l2']['miss'],count($testcases)), $roundoff).'</td>
+                        <td>'.$output['l3']['miss'].' / '.count($testcases).' = '.round($this->divide($output['l3']['miss'],count($testcases)), $roundoff).'</td>
                         <td>'.round(round($output['l1']['miss']/count($testcases), $roundoff) + round($output['l2']['miss']/count($testcases), $roundoff) + round($output['l3']['miss']/count($testcases), $roundoff), $roundoff).'</td>
                     </tr>
                     <tr>
                         <th>Hit Rate</th>
-                        <td>'.$output['l1']['hits'].' / '.$output['l1']['access'].' * 100 = '.round(($output['l1']['hits']/$output['l1']['access'])*100, $roundoff).'%</td>
-                        <td>'.$output['l2']['hits'].' / '.$output['l2']['access'].' * 100 = '.round(($output['l2']['hits']/$output['l2']['access'])*100, $roundoff).'%</td>
-                        <td>'.$output['l3']['hits'].' / '.$output['l3']['access'].' * 100 = '.round(($output['l3']['hits']/$output['l3']['access'])*100, $roundoff).'%</td>
-                        <td>'.round(round((($output['l1']['hits']/$output['l1']['access'])*100 + ($output['l2']['hits']/$output['l2']['access'])*100 + ($output['l3']['hits']/$output['l3']['access'])*100), $roundoff)/3, $roundoff).'% avg.</td>
+                        <td>'.$output['l1']['hits'].' / '.$output['l1']['access'].' * 100 = '.round($this->divide($output['l1']['hits'],$output['l1']['access'])*100, $roundoff).'%</td>
+                        <td>'.$output['l2']['hits'].' / '.$output['l2']['access'].' * 100 = '.round($this->divide($output['l2']['hits'],$output['l2']['access'])*100, $roundoff).'%</td>
+                        <td>'.$output['l3']['hits'].' / '.$output['l3']['access'].' * 100 = '.round($this->divide($output['l3']['hits'],$output['l3']['access'])*100, $roundoff).'%</td>
+                        <td>'.round(round(($this->divide($output['l1']['hits'],$output['l1']['access'])*100 + $this->divide($output['l2']['hits'],$output['l2']['access'])*100 + $this->divide($output['l3']['hits'],$output['l3']['access'])*100), $roundoff)/3, $roundoff).'% avg.</td>
                     </tr>
                     <tr>
                         <th>Miss Rate</th>
-                        <td>'.(100 - round($output['l1']['hits']/$output['l1']['access'], $roundoff)*100).'%</td>
-                        <td>'.(100 - round($output['l2']['hits']/$output['l2']['access'], $roundoff)*100).'%</td>
-                        <td>'.(100 - round($output['l3']['hits']/$output['l3']['access'], $roundoff)*100).'%</td>
-                        <td>'.(round(((100 - round($output['l1']['hits']/$output['l1']['access'], $roundoff)*100) + (100 - round($output['l2']['hits']/$output['l2']['access'], $roundoff)*100) + (100 - round($output['l3']['hits']/$output['l3']['access'], $roundoff)*100)), $roundoff)/3).'% avg.</td>
+                        <td>'.(100 - round($this->divide($output['l1']['hits'],$output['l1']['access']), $roundoff)*100).'%</td>
+                        <td>'.(100 - round($this->divide($output['l2']['hits'],$output['l2']['access']), $roundoff)*100).'%</td>
+                        <td>'.(100 - round($this->divide($output['l3']['hits'],$output['l3']['access']), $roundoff)*100).'%</td>
+                        <td>'.(round(((100 - round($this->divide($output['l1']['hits'],$output['l1']['access']), $roundoff)*100) + (100 - round($this->divide($output['l2']['hits'],$output['l2']['access']), $roundoff)*100) + (100 - round($this->divide($output['l3']['hits'],$output['l3']['access']), $roundoff)*100)), $roundoff)/3).'% avg.</td>
                     </tr>
                 </table>';
       }
@@ -298,6 +305,14 @@
       }
       
       function __destruct(){
+      }
+      
+      function divide($s, $d){
+          if($d == 0){
+              return 0;
+          }else{
+              return $s/$d;
+          }
       }
   }
   
