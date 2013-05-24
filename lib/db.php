@@ -39,12 +39,12 @@
         */
       private function dbconnect(){
           static $sqlconn = FALSE; 
-          global $profiler;
+          //global $profiler;
             //$profiler->add('Called dbconnect()');
             if(!$sqlconn){
-                $profiler->add('dbconnect() :: connection to mysqli()');
+                //$profiler->add('dbconnect() :: connection to mysqli()');
                 $sqlconn = new mysqli($this->host, $this->uname, $this->pass, $this->dbname);
-                $profiler->add('dbconnect() :: connection to mysqli(): Successful');
+                //$profiler->add('dbconnect() :: connection to mysqli(): Successful');
             }
             //$profiler->add('Returned from dbconnect()');
             return $sqlconn;
@@ -58,8 +58,8 @@
         * @param mixed $values: array of values
         */
       function insert($table_name, $values){
-            global $profiler;
-            $a = $profiler->add('Called insert() : table['.$table_name.']');
+            //global $profiler;
+            //$a = $profiler->add('Called insert() : table['.$table_name.']');
             if($this->checktable($table_name)){
                 $col = '(';
                 $val = '(';
@@ -72,10 +72,10 @@
                 $query = 'INSERT INTO '.$table_name.' '.$col.' VALUES '.$val;
                 $r = $this->querydb($query);
                 if($r){ 
-                    $profiler->add('Returned from insert(): Insert Operation Successful', $a); 
+                    //$profiler->add('Returned from insert(): Insert Operation Successful', $a); 
                 }
                 else{ 
-                    $profiler->add('Returned from insert(): Insert Operation Failed!', $a); 
+                    //$profiler->add('Returned from insert(): Insert Operation Failed!', $a); 
                 }
                 return $r;
             }else{
@@ -91,8 +91,8 @@
         * @param mixed $values: array of values
         */
       function replace($table_name, $values){
-            global $profiler;
-            $a = $profiler->add('Called replace() values on : table['.$table_name.']');
+            //global $profiler;
+            //$a = $profiler->add('Called replace() values on : table['.$table_name.']');
             if($this->checktable($table_name)){
                 $col = '(';
                 $val = '(';
@@ -105,10 +105,10 @@
                 $query = 'REPLACE INTO '.$table_name.' '.$col.' VALUES '.$val;
                 $r = $this->querydb($query);
                 if($r){ 
-                    $profiler->add('Returned from replace(): Operation Successful', $a); 
+                    //$profiler->add('Returned from replace(): Operation Successful', $a); 
                 }
                 else{ 
-                    $profiler->add('Returned from insert(): Insert Operation Failed!', $a); 
+                    //$profiler->add('Returned from insert(): Insert Operation Failed!', $a); 
                 }
                 return $r;
             }else{
@@ -125,8 +125,8 @@
         * @param mixed $condition: condition of update
         */
       function update($table, $values, $condition){
-            global $profiler;
-            $a = $profiler->add('Called update() : table['.$table.']');
+            //global $profiler;
+            //$a = $profiler->add('Called update() : table['.$table.']');
           if($this->checktable($table)){
             $val = '';
             foreach($values as $k=>$v){
@@ -135,7 +135,7 @@
             $val .= "modified='".time()."'";
             $query = 'UPDATE '.$table.' SET '.$val.' WHERE '.$condition;
             return $this->querydb($query);
-            $profiler->add('Returned from Update() : Update Completed', $a);
+            //$profiler->add('Returned from Update() : Update Completed', $a);
           }else{
               trigger_error('Returned from Update : Table "'.$table.'" does not exists.');
               return FALSE;
@@ -148,14 +148,14 @@
         * @param mixed $table: name of table.
         */
       function checktable($table = ''){
-            global $profiler;
-            $a = $profiler->add('Called checktable() : table['.$table.']');
+            //global $profiler;
+            //$a = $profiler->add('Called checktable() : table['.$table.']');
             $result = $this->querydb("SHOW TABLEs LIKE '".$table."'");
             if($result->num_rows){
-              $profiler->add('Returned from checktable() : Table Found', $a);
+              //$profiler->add('Returned from checktable() : Table Found', $a);
               return TRUE;
             }else{
-              $profiler->add('Returned from checktable() : Table Not Found', $a);
+              //$profiler->add('Returned from checktable() : Table Not Found', $a);
               //return FALSE;
               return $this->createtable($table);
               
@@ -169,10 +169,10 @@
         * @param mixed $condition: delete condition
         */
       function delete($table, $condition){
-            global $profiler;
-            $a=$profiler->add('Called delete() : table['.$table.']');
+            //global $profiler;
+            //$a=$profiler->add('Called delete() : table['.$table.']');
             $result = $this->querydb("DELETE FROM ".$table." WHERE ".$condition);
-            $profiler->add('Returned from delete() : Table deleted', $a);
+            //$profiler->add('Returned from delete() : Table deleted', $a);
             return true;
         }
         
@@ -183,16 +183,16 @@
         * @param mixed $returnObject: by default it is false. if it is true it returns array of arrays i.e more the one row or in case of false it return only one row.
         */
       function querydb($query, $returnObject = FALSE){
-            global $error,$profiler;
-            $a = $profiler->add('Called querydb() : query['.$query.']');
+            global $error;
+            //$a = $profiler->add('Called querydb() : query['.$query.']');
             $sql = $this->dbconnect();
             $result = $sql->query($query);
             if(!$result){
-                $profiler->add('Returned from querydb() : Query Failed reporting error', $a);
+                //$profiler->add('Returned from querydb() : Query Failed reporting error', $a);
                 trigger_error('Problem in query: "'.$query.'"');
                 return FALSE;
             }
-            $profiler->add('Returned from querydb() : Query Completed', $a);
+            //$profiler->add('Returned from querydb() : Query Completed', $a);
             if($returnObject){
                 if($result->num_rows){
                     return $result->fetch_object();                    
@@ -211,26 +211,26 @@
         * @var $tblname: name of table to be created
         */
       function createtable($tblname){
-            global $error,$profiler, $array_of_tables;
+            global $error, $array_of_tables;
             //static $i = 0;
-            $a = $profiler->add('Called createtable() : table['.$tblname.']'); 
+           // $a = $profiler->add('Called createtable() : table['.$tblname.']'); 
             foreach($array_of_tables as $key=>$createtablequery){
                     if($key==$tblname)
                     {
                         $var=$this->querydb($createtablequery);
                           if($var){
                             //print_r($var);
-                            $profiler->add('Returned from createtable() : Table created['.$tblname.']');
+                            //$profiler->add('Returned from createtable() : Table created['.$tblname.']');
                             return TRUE;
                             }
                           else{
                             //print_r($var);
-                            $profiler->add('Returned from createtable() : Error in table creation['.$tblname.']');
+                            //$profiler->add('Returned from createtable() : Error in table creation['.$tblname.']');
                             return FALSE;
                             }
                     }
             }
-            $profiler->add('Returned from creatable() table : '.$tblname.' Not found in mysql.php');
+            //$profiler->add('Returned from creatable() table : '.$tblname.' Not found in mysql.php');
             return FALSE;
         }
         

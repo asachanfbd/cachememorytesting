@@ -79,7 +79,7 @@
             <tr>
                     <td>Size/Capacity</td><td>:</td><td><input type="text" name="memlength" value="<?php if(isset($memlength) && $memlength != ''){echo $memlength;}else{ echo '8';}?>"></td>
             </tr>
-            <tr>
+            <tr style="display: none;">
                 <td>Level Type</td>
                 <td>:</td>
                 <td>
@@ -101,7 +101,7 @@
                     </select>
                 </td>
             </tr>
-            <tr class="loneincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
+            <tr style="display: none;" class="loneincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
                 <td>Inclusive to</td><td>:</td><td>
                 <select name="memincwith[]" multiple="multiple">
                     <?php
@@ -167,7 +167,7 @@
             <tr>
                 <td>Size/Capacity</td><td>:</td><td><input type="text" name="memlength" value="<?php if(isset($memlength)){echo $memlength;}?>"></td>
             </tr>
-            <tr>
+            <tr style="display: none;">
                 <td>Level Type</td>
                 <td>:</td>
                 <td>
@@ -188,7 +188,7 @@
                     </select>
                 </td>
             </tr>
-            <tr class="ltwoincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
+            <tr style="display: none;" class="ltwoincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
                 <td>Inclusive to</td><td>:</td><td>
                 <select name="memincwith[]" multiple="multiple">
                     <?php
@@ -255,7 +255,7 @@
             <tr>
                 <td>Size/Capacity</td><td>:</td><td><input type="text" name="memlength" value="<?php if(isset($memlength)){echo $memlength;}?>"></td>
             </tr>
-            <tr>
+            <tr style="display: none;">
                 <td>Level Type</td>
                 <td>:</td>
                 <td>
@@ -276,7 +276,7 @@
                     </select>
                 </td>
             </tr>
-            <tr class="lthreeincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
+            <tr style="display: none;" class="lthreeincwith" <?php if($ifinc){ echo 'style="display:block;"'; $ifinc = false;} ?>>
                 <td>Inclusive to</td><td>:</td><td>
                 <select name="memincwith[]" multiple="multiple">
                     <?php

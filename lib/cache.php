@@ -16,9 +16,9 @@
             if($re->num_rows){
                 while($ro = $re->fetch_object()){
                     $this->level[$ro->memname]['type'] = $ro->memtype;
-                    $this->level[$ro->memname]['data'] = json_decode($ro->memdata);
+                    $this->level[$ro->memname]['data'] = json_decode($ro->memdata, true);
                     $this->level[$ro->memname]['length'] = $ro->memlength;
-                    $this->level[$ro->memname]['incwith'] = json_decode($ro->memincwith);
+                    $this->level[$ro->memname]['incwith'] = json_decode($ro->memincwith, true);
                     $this->level[$ro->memname]['accesstime'] = $ro->memaccesstime;
                     if($ro->memtype == 'inc'){
                         $this->inc[] = $ro->memname;
@@ -42,6 +42,7 @@
                         }
                     }
                 }
+         // echo "<pre>".print_r($this->level, true)."</pre>";
             }
             /*
           echo "<pre style='font-size: 11px;'>";
@@ -152,7 +153,7 @@
                   return true;
               }else{
                   $miss++;
-                  return $this->load_from_main_memory($blockname);
+                  return $this->load_into_levels($blockname);  // specially for case 3;
               }
           }else{
               //get the status of this cache
@@ -177,9 +178,19 @@
       }
       
       function load_into_levels($block){
-          if(count($this->level['l1']) >= 8){
-              
+          //echo "<pre>".print_r($block, true).print_r($this->level, true)."</pre>";
+          $this->level['l1']['data'][] = $block;
+          $this->level['l2']['data'][] = $block;
+          while(count($this->level['l1']['data'])>$this->level['l1']['length']){
+              $this->level['l2']['data'][] = array_shift($this->level['l1']['data']);
           }
+          while(count($this->level['l2']['data'])>$this->level['l2']['length']){
+              $this->level['l3']['data'][] = array_shift($this->level['l2']['data']);
+          }
+          while(count($this->level['l3']['data'])>$this->level['l3']['length']){
+              $r = array_shift($this->level['l3']['data']);
+          }
+          return true;
       }
       
       function fill_levels(){
@@ -216,14 +227,24 @@
       }
       
       function moveup($blockname){
-          //move up in exclusive levels
-          $k = array_search($blockname, $this->excdata);
-          unset($this->excdata[$k]);
-          $this->excdata[] = $blockname;
-          //move up in inclusive levels
-          $k = array_search($blockname, $this->incdata);
-          unset($this->incdata[$k]);
-          $this->incdata[] = $blockname;
+          $flag = true;
+          if(is_array($this->level['l1']['data']) && in_array($blockname, $this->level['l1']['data'])){
+              $k = array_search($blockname, $this->level['l1']['data']);
+              unset($this->level['l1']['data'][$k]);
+              $this->level['l1']['data'][] = $blockname;
+              $flag = false;
+          }
+          if(is_array($this->level['l2']['data']) && in_array($blockname, $this->level['l2']['data'])){
+              $k = array_search($blockname, $this->level['l2']['data']);
+              unset($this->level['l2']['data'][$k]);
+              $this->level['l2']['data'][] = $blockname;
+              $flag = false;
+          }
+          if(is_array($this->level['l3']['data']) && in_array($blockname, $this->level['l3']['data']) && $flag){
+              $k = array_search($blockname, $this->level['l3']['data']);
+              unset($this->level['l3']['data'][$k]);
+              $this->level['l3']['data'][] = $blockname;
+          }
       }
       
       function output(){
@@ -296,6 +317,7 @@
       
       function savetodb(){
           global $db;
+         // echo "<pre>".print_r($this->level, true)."</pre>";
           foreach($this->level as $k=>$v){
               $values = array(
                     'memdata' => json_encode($this->level[$k]['data'])

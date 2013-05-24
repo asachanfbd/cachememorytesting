@@ -19,7 +19,7 @@
   // code to fill blocks
   
     $mainmemory = array();
-    for($i = 1; $i <= 1000; $i++){
+    for($i = 1; $i <= 100; $i++){
         $mainmemory['block'.$i] = 'data'.$i;
     }
     $re = $db->querydb("SELECT * FROM memconfig");
@@ -67,6 +67,13 @@
         <li><a href="configure.php">Configure</a></li>
         <li><a href="index.php">View</a></li>
     </ul>
+    <div>
+        Test Case: <br>
+        L1 - Inclusive with L2<br>
+        L2 - Inclusive with L1<br>
+        L3 - Exclusive<br>
+        
+    </div>
 </nav>
 <div class="container">
     <?php
@@ -93,7 +100,7 @@
         <ul>
         <?php
             if(is_array($cache->level['l1']['data'])){
-                 foreach($cache->level['l1']['data'] as $k=>$v){
+                 foreach(array_reverse($cache->level['l1']['data']) as $k=>$v){
                      echo "<li>".$v."</li>";
                  }
             }
@@ -105,7 +112,7 @@
         <ul>
         <?php
             if(is_array($cache->level['l2']['data'])){
-                 foreach($cache->level['l2']['data'] as $k=>$v){
+                 foreach(array_reverse($cache->level['l2']['data']) as $k=>$v){
                      echo "<li>".$v."</li>";
                  }
             }
@@ -117,7 +124,7 @@
         <ul>
         <?php
             if(is_array($cache->level['l3']['data'])){
-                 foreach($cache->level['l3']['data'] as $k=>$v){
+                 foreach(array_reverse($cache->level['l3']['data']) as $k=>$v){
                      echo "<li>".$v."</li>";
                  }
             }
