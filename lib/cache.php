@@ -172,7 +172,7 @@
           
           $this->excdata[] = $blockname;
           $this->incdata[] = $blockname;
-          $this->fell_levels();
+          $this->fill_levels();
           return true;
       }
       
@@ -182,7 +182,7 @@
           }
       }
       
-      function fell_levels(){
+      function fill_levels(){
           global $db;
           $i = 0;
           $this->level[$this->exclist[$i]]['data'] = array();
